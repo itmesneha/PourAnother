@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 type PairingResult = {
   aesthetic: string;
@@ -33,20 +33,15 @@ export default function Home() {
     };
   }, [file]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!file) {
-      setError("Please choose an image first.");
-      return;
-    }
+  async function analyzeImage(selectedFile: File) {
+    setFile(selectedFile);
 
     setIsLoading(true);
     setError(null);
     setResult(null);
 
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", selectedFile);
 
     try {
       const response = await fetch("/api/recommend", {
@@ -74,85 +69,110 @@ export default function Home() {
     }
   }
 
+  function handleFileSelect(event: ChangeEvent<HTMLInputElement>) {
+    const selected = event.target.files?.[0] ?? null;
+
+    if (!selected) {
+      return;
+    }
+
+    void analyzeImage(selected);
+  }
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 px-6 py-12">
+    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 bg-background px-6 py-12 text-foreground">
       <section className="space-y-3">
-        <h1 className="text-3xl font-semibold">Pour Another</h1>
-        <p className="text-sm text-neutral-600">
-          Upload a photo or mood board. Claude Vision will analyze aesthetic,
-          palette, lighting, and mood, then return a drink pairing with a poetic
-          explanation.
+        <h1 className="font-title text-9xl font-normal text-accent">Pour Another</h1>
+        <p className="font-sans text-sm text-foreground/90 pt-16">
+          Every mood has a drink waiting for it.
         </p>
       </section>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(event) => {
-            const selected = event.target.files?.[0] ?? null;
-            setFile(selected);
-            setResult(null);
-            setError(null);
-          }}
-        />
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="rounded-md border px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isLoading ? "Analyzing..." : "Analyze and Recommend"}
-        </button>
-      </form>
-
-      {previewUrl ? (
-        <section className="space-y-2">
-          <h2 className="text-lg font-medium">Uploaded image</h2>
-          <Image
-            src={previewUrl}
-            alt="Uploaded preview"
-            width={1200}
-            height={800}
-            className="max-h-80 w-full rounded-md border object-contain"
-          />
-        </section>
-      ) : null}
-
       {error ? (
-        <section className="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <section className="rounded-md border border-accent/60 bg-surface px-4 py-3 text-sm text-foreground">
           {error}
         </section>
       ) : null}
 
-      {result ? (
-        <section className="space-y-4 rounded-md border p-4">
-          <h2 className="text-xl font-semibold">Drink Pairing</h2>
+      <section className="grid gap-6 md:grid-cols-2">
+        <article className="flex h-[430px] flex-col rounded-md border border-foreground/25 bg-surface p-4">
+          <h2 className="font-sans text-sm text-accent">The Mood</h2>
 
-          <div className="space-y-1 text-sm">
-            <p>
-              <strong>Aesthetic:</strong> {result.aesthetic}
-            </p>
-            <p>
-              <strong>Palette:</strong> {result.palette}
-            </p>
-            <p>
-              <strong>Lighting:</strong> {result.lighting}
-            </p>
-            <p>
-              <strong>Mood:</strong> {result.mood}
-            </p>
+          {previewUrl ? (
+            <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3">
+              <div className="relative min-h-0 flex-1 overflow-hidden rounded-md border border-foreground/20 bg-background">
+                <Image
+                  src={previewUrl}
+                  alt="Uploaded preview"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+
+              <label className="font-sans inline-flex w-fit cursor-pointer rounded-md bg-accent px-4 py-2 text-sm text-background">
+                choose another
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+              </label>
+            </div>
+          ) : (
+            <div className="mt-3 flex flex-1 items-center justify-center rounded-md border border-dashed border-foreground/30 bg-background/60">
+              <label className="font-sans inline-flex w-1/2 cursor-pointer items-center justify-center rounded-md bg-accent px-4 py-3 text-center text-sm text-background">
+                {isLoading ? "reading the room..." : "choose file"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+              </label>
+            </div>
+          )}
+        </article>
+
+        <article className="flex h-[430px] flex-col rounded-md border border-foreground/20 bg-surface p-4">
+          <h2 className="font-sans text-sm text-accent">Drink Pairing</h2>
+
+          <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+            {isLoading ? (
+              <p className="font-sans text-sm text-foreground/80">reading the room...</p>
+            ) : result ? (
+              <div className="space-y-4">
+                <div className="space-y-1 text-sm">
+                  <p>
+                    <strong>Aesthetic:</strong> {result.aesthetic}
+                  </p>
+                  <p>
+                    <strong>Palette:</strong> {result.palette}
+                  </p>
+                  <p>
+                    <strong>Lighting:</strong> {result.lighting}
+                  </p>
+                  <p>
+                    <strong>Mood:</strong> {result.mood}
+                  </p>
+                </div>
+
+                <p className="text-lg">
+                  <strong>Recommended drink:</strong> {result.drinkRecommendation}
+                </p>
+
+                <p className="whitespace-pre-wrap text-sm leading-7">
+                  {result.poeticPairing}
+                </p>
+              </div>
+            ) : (
+              <p className="font-sans text-sm text-foreground/80">
+                Upload an image to get your pairing.
+              </p>
+            )}
           </div>
-
-          <p className="text-lg">
-            <strong>Recommended drink:</strong> {result.drinkRecommendation}
-          </p>
-
-          <p className="whitespace-pre-wrap text-sm leading-7">
-            {result.poeticPairing}
-          </p>
-        </section>
-      ) : null}
+        </article>
+      </section>
     </main>
   );
 }

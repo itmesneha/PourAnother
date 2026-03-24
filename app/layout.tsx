@@ -1,20 +1,34 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const dirtyCursive = localFont({
+  src: "../public/fonts/DirtyCursive.ttf",
+  variable: "--font-dirty-cursive",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const anticaSignature = localFont({
+  src: "../public/fonts/AnticaSignature.otf",
+  variable: "--font-antica-signature",
+  display: "swap",
+});
+
+const malvinassignature = localFont({
+  src: "../public/fonts/MalvinasSignature.ttf",
+  variable: "--font-malvinas-signature",
+  display: "swap",
+});
+
+const tychrc2u = localFont({
+  src: "../public/fonts/TychRc2U.ttf",
+  variable: "--font-tychrc2u",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Pour Another",
-  description: "I know exactly what you'd like to drink.",
+  description: "Every mood has a drink waiting for it.",
   icons: {
     icon: "/favicon.png",
   },
@@ -28,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${dirtyCursive.variable} ${anticaSignature.variable} ${malvinassignature.variable} ${tychrc2u.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
