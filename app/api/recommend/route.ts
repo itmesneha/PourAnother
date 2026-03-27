@@ -8,9 +8,6 @@ const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 
 type PairingResult = {
   aesthetic: string;
-  palette: string;
-  lighting: string;
-  mood: string;
   drinkRecommendation: string;
   poeticPairing: string;
 };
@@ -40,9 +37,6 @@ function validateResult(data: unknown): PairingResult {
 
   const keys: (keyof PairingResult)[] = [
     "aesthetic",
-    "palette",
-    "lighting",
-    "mood",
     "drinkRecommendation",
     "poeticPairing",
   ];
@@ -98,10 +92,10 @@ export async function POST(request: Request) {
     const prompt = [
       "Analyze this uploaded image for visual style.",
       "Focus on: aesthetic, palette, lighting, and mood.",
-      "Then recommend one drink pairing.",
+      "Then recommend only one alcholic drink pairing.",
       "Return ONLY valid JSON with this exact shape:",
-      '{"aesthetic":"...","palette":"...","lighting":"...","mood":"...","drinkRecommendation":"...","poeticPairing":"..."}',
-      "The poeticPairing should be lyrical but concise (3-6 sentences)."
+      '{"aesthetic":"...","drinkRecommendation":"...","poeticPairing":"..."}',
+      "The poeticPairing should be lyrical but concise (3-4 sentences)."
     ].join("\n");
 
     const response = await fetch(ANTHROPIC_API_URL, {

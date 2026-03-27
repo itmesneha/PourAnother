@@ -25,7 +25,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-malvinas-signature), "Brush Script MT", cursive;
+  /* font-family: var(--font-malvinas-signature), "Brush Script MT", cursive; */
 }
 
 .font-title {
@@ -35,5 +35,11 @@ body {
 .font-sans {
   font-family: "Futura", "Trebuchet MS", "Helvetica Neue", Arial, sans-serif;
   font-weight: 50;
+  font-style: italic;
+}
+
+.cocktail-suggestion{
+  font-family:var(--font-dirty-cursive), "Brush Script MT", cursive;
+  font-weight: 100;
   font-style: italic;
 }

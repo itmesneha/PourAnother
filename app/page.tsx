@@ -7,9 +7,6 @@ import { HandDrawnBox } from "./components/HandDrawnBox";
 
 type PairingResult = {
   aesthetic: string;
-  palette: string;
-  lighting: string;
-  mood: string;
   drinkRecommendation: string;
   poeticPairing: string;
 };
@@ -332,35 +329,28 @@ export default function Home() {
         {hasInputStarted ? (
         <HandDrawnBox className="h-[430px]" delayMs={350}>
           <article className="flex h-full flex-col">
-          <h2 className="font-sans text-sm text-accent pr-3">Drink Pairing</h2>
+          {/* <h2 className="font-sans text-sm text-accent pr-3">Drink Pairing</h2> */}
 
           <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
             {isLoading ? (
               <p className="font-sans text-sm text-foreground/80">reading the room...</p>
             ) : result ? (
               <div className="space-y-4">
-                <div className="space-y-1 text-sm">
+                 <p className="cocktail-suggestion text-3xl">
+                  <span ref={anotherRef}>{result.drinkRecommendation}</span>
+                </p>
+
+                <p className="font-sans fowhitespace-pre-wrap text-sm leading-7">
+                  {result.poeticPairing}
+                </p>
+
+                <div className="font-sans space-y-1 text-sm">
                   <p>
-                    <strong>Aesthetic:</strong> {result.aesthetic}
-                  </p>
-                  <p>
-                    <strong>Palette:</strong> {result.palette}
-                  </p>
-                  <p>
-                    <strong>Lighting:</strong> {result.lighting}
-                  </p>
-                  <p>
-                    <strong>Mood:</strong> {result.mood}
+                    <span ref={anotherRef}>Aesthetic:</span> {result.aesthetic}
                   </p>
                 </div>
 
-                <p className="text-lg">
-                  <strong>Recommended drink:</strong> {result.drinkRecommendation}
-                </p>
-
-                <p className="whitespace-pre-wrap text-sm leading-7">
-                  {result.poeticPairing}
-                </p>
+               
               </div>
             ) : (
               <p className="font-sans text-sm text-foreground/80">
