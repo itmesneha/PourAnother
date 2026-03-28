@@ -6,9 +6,9 @@ import { annotate } from "rough-notation";
 import { HandDrawnBox } from "./components/HandDrawnBox";
 
 type PairingResult = {
-  aesthetic: string;
   drinkRecommendation: string;
   poeticPairing: string;
+  recipe?: { instructions: string; ingredients: Array<{ ingredient: string; measure: string }> };
 };
 
 export default function Home() {
@@ -165,8 +165,8 @@ export default function Home() {
   }
 
   return (
-    <main className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 overflow-hidden bg-background px-6 py-12 text-foreground">
-      <div className="pointer-events-none absolute -left-24 top-48 h-[500px] w-[500px] opacity-100">
+    <>
+     <div className="pointer-events-none absolute -left-24 top-12 h-[500px] w-[500px] opacity-100">
         <Image
           src="/images/glass1.png"
           alt=""
@@ -174,9 +174,8 @@ export default function Home() {
           className="object-contain"
           aria-hidden
           priority
-        />
+        /> 
       </div>
-
       <div className="pointer-events-none absolute -right-8 bottom-0 h-[300px] w-[300px] opacity-100">
         <Image
           src="/images/glass2.png"
@@ -187,6 +186,19 @@ export default function Home() {
           priority
         />
       </div>
+    <main className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 overflow-hidden bg-background px-6 py-12 text-foreground">
+      {/* <div className="pointer-events-none absolute -left-12 top-48 h-[500px] w-[500px] opacity-100">
+        <Image
+          src="/images/glass1.png"
+          alt=""
+          fill
+          className="object-contain"
+          aria-hidden
+          priority
+        />
+      </div> */}
+
+      
 
       <div className="relative z-10 flex flex-col gap-8">
       <section className="space-y-3">
@@ -195,7 +207,7 @@ export default function Home() {
             Pour <span ref={anotherRef}>Another</span>
             <span className="font-sans text-4xl align-baseline">.</span>
           </h1>
-          <div className="relative h-28 w-28 shrink-0 self-end md:h-32 md:w-32">
+          {/* <div className="relative h-28 w-28 shrink-0 self-end md:h-32 md:w-32">
             <Image
               src={cocktailFrames[currentCocktailFrame]}
               alt="Animated cocktail"
@@ -204,7 +216,7 @@ export default function Home() {
               style={{ top: "25px" }}
               priority
             />
-          </div>
+          </div> */}
         </div>
         <p className="font-sans text-sm text-foreground/90 pt-4">
           Every mood has a drink waiting for it.
@@ -218,152 +230,161 @@ export default function Home() {
       ) : null}
 
       <section
-        className="grid gap-6 transition-all duration-[1100ms] ease-in-out"
-        style={{
-          gridTemplateColumns: hasInputStarted
-            ? "minmax(0,1fr) minmax(0,1fr)"
-            : "minmax(0,1fr) 0fr",
-        }}
+        className="grid gap-6"
+        style={{ gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)" }}
       >
-        <div
-          className={`transition-all duration-[1100ms] ease-in-out ${
-            hasInputStarted ? "max-w-none" : "mx-auto w-full max-w-md"
-          }`}
-        >
-        <HandDrawnBox className="h-[430px]" delayMs={0} animationDurationMs={100}
-                    strokeWidth={1.2}
-                    padding={3}
-                    iterations={3}>
-          <article className="flex h-full flex-col">
-          <h2 className="font-sans text-sm text-accent pt-3 pr-3">The Mood</h2>
+        {/* Left box — file upload, always visible */}
+        <div>
+          <HandDrawnBox className="h-[430px]" delayMs={0} animationDurationMs={100}
+                      strokeWidth={1.2}
+                      padding={3}
+                      iterations={3}>
+            <article className="flex h-full flex-col p-4">
+              <h2 className="font-sans text-sm text-accent">The Mood</h2>
 
-          {previewUrl ? (
-            <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3">
-              <div className="relative min-h-0 flex-1 overflow-hidden rounded-md border border-foreground/20 bg-background">
-                <div
-                  className={`absolute inset-0 transition-opacity duration-[1200ms] ease-out ${
-                    showUploadedPreview ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  <Image
-                    src={previewUrl}
-                    alt="Uploaded preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-
-                {!showUploadedPreview ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/70">
-                    <p className="font-sans text-sm text-accent/85">framing your mood...</p>
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="flex justify-center py-2">
-                <div
-                  ref={chooseBoxRef}
-                  className="w-1/2"
-                  onMouseEnter={handleChooseHoverEnter}
-                  onMouseLeave={handleChooseHoverLeave}
-                >
-                  <HandDrawnBox
-                    className="w-full"
-                    animationDurationMs={3000}
-                    strokeWidth={1.2}
-                    padding={3}
-                    iterations={1}
-                  >
-                    <label className="font-sans inline-flex w-full cursor-pointer items-center justify-center rounded-sm bg-accent/5 px-4 py-3 text-center text-sm text-accent">
-                      choose another
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileSelect}
+              {previewUrl ? (
+                <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3">
+                  <div className="relative min-h-0 flex-1 overflow-hidden rounded-md border border-foreground/20 bg-background">
+                    <div
+                      className={`absolute inset-0 transition-opacity duration-[1200ms] ease-out ${
+                        showUploadedPreview ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      <Image
+                        src={previewUrl}
+                        alt="Uploaded preview"
+                        fill
+                        className="object-cover"
                       />
-                    </label>
-                  </HandDrawnBox>
+                    </div>
+
+                    {!showUploadedPreview ? (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/70">
+                        <p className="font-sans text-sm text-accent/85">framing your mood...</p>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="flex justify-center py-2">
+                    <div
+                      ref={chooseBoxRef}
+                      className="w-1/2"
+                      onMouseEnter={handleChooseHoverEnter}
+                      onMouseLeave={handleChooseHoverLeave}
+                    >
+                      <HandDrawnBox
+                        className="w-full"
+                        animationDurationMs={3000}
+                        strokeWidth={1.2}
+                        padding={3}
+                        iterations={1}
+                      >
+                        <label className="font-sans inline-flex w-full cursor-pointer items-center justify-center rounded-sm bg-accent/5 px-4 py-3 text-center text-sm text-accent">
+                          choose another
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFileSelect}
+                          />
+                        </label>
+                      </HandDrawnBox>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-3 flex flex-1 items-center justify-center bg-background/60">
-              <div
-                ref={chooseBoxRef}
-                className="w-1/2"
-                onMouseEnter={handleChooseHoverEnter}
-                onMouseLeave={handleChooseHoverLeave}
-              >
-                <HandDrawnBox
-                  className="w-full"
-                  animationDurationMs={3000}
-                    strokeWidth={1.2}
-                    padding={3}
-                    iterations={1}
-                >
-                  <label className="font-sans inline-flex w-full cursor-pointer items-center justify-center rounded-sm bg-accent/5 px-4 py-3 text-center text-sm text-accent">
-                    {isLoading ? "reading the room..." : "choose file"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleFileSelect}
-                    />
-                  </label>
-                </HandDrawnBox>
-              </div>
-            </div>
-          )}
-          </article>
-        </HandDrawnBox>
+              ) : (
+                <div className="mt-3 flex flex-1 items-center justify-center">
+                  <div
+                    ref={chooseBoxRef}
+                    className="w-1/2"
+                    onMouseEnter={handleChooseHoverEnter}
+                    onMouseLeave={handleChooseHoverLeave}
+                  >
+                    <HandDrawnBox
+                      className="w-full"
+                      animationDurationMs={3000}
+                      strokeWidth={1.2}
+                      padding={3}
+                      iterations={1}
+                    >
+                      <label className="font-sans inline-flex w-full cursor-pointer items-center justify-center rounded-sm bg-accent/5 px-4 py-3 text-center text-sm text-accent">
+                        {isLoading ? "reading the room..." : "choose file"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleFileSelect}
+                        />
+                      </label>
+                    </HandDrawnBox>
+                  </div>
+                </div>
+              )}
+            </article>
+          </HandDrawnBox>
         </div>
 
-        <div
-          className={`min-w-0 overflow-hidden transition-all duration-[900ms] ease-in-out ${
-            hasInputStarted
-              ? "translate-x-0 opacity-100"
-              : "pointer-events-none translate-x-10 opacity-0"
-          }`}
-        >
-        {hasInputStarted ? (
-        <HandDrawnBox className="h-[430px]" delayMs={350}>
-          <article className="flex h-full flex-col">
-          {/* <h2 className="font-sans text-sm text-accent pr-3">Drink Pairing</h2> */}
+        {/* Right box — always visible, plain until file uploaded */}
+        <div>
+          {hasInputStarted ? (
+            <HandDrawnBox className="h-[430px]" delayMs={350}>
+              <article className="flex h-full flex-col p-4">
+                <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+                  {isLoading ? (
+                    <p className="font-sans text-sm text-foreground/80">reading the room...</p>
+                  ) : result ? (
+                    <div className="space-y-4">
+                      <p className="cocktail-suggestion text-3xl">
+                        {result.drinkRecommendation}
+                      </p>
 
-          <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
-            {isLoading ? (
-              <p className="font-sans text-sm text-foreground/80">reading the room...</p>
-            ) : result ? (
-              <div className="space-y-4">
-                 <p className="cocktail-suggestion text-3xl">
-                  <span ref={anotherRef}>{result.drinkRecommendation}</span>
-                </p>
+                      <p className="font-sans whitespace-pre-wrap text-sm leading-7">
+                        {result.poeticPairing}
+                      </p>
 
-                <p className="font-sans fowhitespace-pre-wrap text-sm leading-7">
-                  {result.poeticPairing}
-                </p>
-
-                <div className="font-sans space-y-1 text-sm">
-                  <p>
-                    <span ref={anotherRef}>Aesthetic:</span> {result.aesthetic}
-                  </p>
+                      {result.recipe && (
+                        <div className="mt-6">
+                          <h3 className="font-sans text-lg text-accent mb-2">Recipe</h3>
+                          <ul className="mb-2 list-disc list-inside text-sm">
+                            {result.recipe.ingredients.map((item, idx) => (
+                              <li key={idx}>
+                                {item.ingredient}
+                                {item.measure ? ` — ${item.measure}` : ""}
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="font-sans text-sm whitespace-pre-line">
+                            {result.recipe.instructions}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="font-sans text-sm text-foreground/80">reading the room...</p>
+                  )}
                 </div>
-
-               
+              </article>
+            </HandDrawnBox>
+          ) : (
+            /* Plain box — no HandDrawnBox outline, just centered placeholder */
+            <div className="h-[430px] flex flex-col items-center justify-center p-4">
+              <div className="relative w-32 h-32 mb-4">
+                <Image
+                  src="/images/glass4.png"
+                  alt="Cocktail"
+                  fill
+                  className="object-contain"
+                />
               </div>
-            ) : (
-              <p className="font-sans text-sm text-foreground/80">
-                Upload an image to get your pairing.
+              <p className="font-sans text-sm text-foreground/80 text-center">
+                ready to read the room
               </p>
-            )}
-          </div>
-          </article>
-        </HandDrawnBox>
-        ) : null}
+            </div>
+          )}
         </div>
       </section>
       </div>
     </main>
+    </>
   );
 }
