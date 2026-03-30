@@ -32,13 +32,25 @@ const antically = localFont({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Pour Another",
-  description: "Every mood has a drink waiting for it.",
-  icons: {
-    icon: "/favicon.png",
-  },
-};
+export const metadata: Metadata = {                                                                                                  
+    title: "Pour Another",                                                                                                             
+    description: "Every mood has a drink waiting for it.",                                                                             
+    icons: { icon: "/favicon.png" },                                                                                                   
+    openGraph: {                                                                                                                     
+      title: "Pour Another",                                                                                                           
+      description: "Every mood has a drink waiting for it.",                                                                         
+      url: "https://pour-another.vercel.app/",
+      siteName: "Pour Another",                                                                                                        
+      images: [{ url: "https://pour-another.vercel.app/og-image.png", width: 1200, height: 630 }],
+      type: "website",                                                                                                                 
+    },                                                                                                                               
+    twitter: {                                                                                                                         
+      card: "summary_large_image",                                                                                                   
+      title: "Pour Another",
+      description: "Every mood has a drink waiting for it.",
+      images: ["https://pour-another.vercel.app/og-image.png"],                                                                                                       
+    },
+  };                                        
 
 export default function RootLayout({
   children,
