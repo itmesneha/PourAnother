@@ -20,7 +20,7 @@ export const HandDrawnBox: React.FC<HandDrawnBoxProps> = ({
   animationDurationMs = 3000,
   strokeWidth = 1.5,
   padding = 4,
-  iterations = 3,
+  iterations = 1,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 

@@ -34,12 +34,12 @@ body {
 
 .font-sans {
   font-family: "Futura", "Trebuchet MS", "Helvetica Neue", Arial, sans-serif;
-  font-weight: 50;
+  font-weight: 10;
   font-style: italic;
 }
 
 .cocktail-suggestion{
-  font-family:var(--font-dirty-cursive), "Brush Script MT", cursive;
+  font-family:var(--font-antically), "Brush Script MT", cursive;
   font-weight: 100;
   font-style: italic;
 }

@@ -26,6 +26,12 @@ const tychrc2u = localFont({
   display: "swap",
 });
 
+const antically = localFont({
+  src: "../public/fonts/Antically.ttf",
+  variable: "--font-antically",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Pour Another",
   description: "Every mood has a drink waiting for it.",
@@ -42,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${dirtyCursive.variable} ${anticaSignature.variable} ${malvinassignature.variable} ${tychrc2u.variable} h-full antialiased`}
+      className={`${dirtyCursive.variable} ${anticaSignature.variable} ${malvinassignature.variable} ${tychrc2u.variable} ${antically.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
