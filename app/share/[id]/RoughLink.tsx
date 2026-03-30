@@ -8,8 +8,10 @@ export function RoughLink({ href, children }: { href: string; children: React.Re
   const elRef = useRef<HTMLAnchorElement>(null);
   const annotationRef = useRef<ReturnType<typeof annotate> | null>(null);
 
+  const canHover = () => window.matchMedia("(hover: hover)").matches;
+
   function handleEnter() {
-    if (!elRef.current) return;
+    if (!elRef.current || !canHover()) return;
     annotationRef.current?.remove();
     const a = annotate(elRef.current, {
       type: "underline",

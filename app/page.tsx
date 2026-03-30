@@ -150,8 +150,10 @@ export default function Home() {
     }, 35);
   }
 
+  const canHover = () => window.matchMedia("(hover: hover)").matches;
+
   function handleChooseHoverEnter() {
-    if (!chooseBoxRef.current) return;
+    if (!chooseBoxRef.current || !canHover()) return;
     chooseHighlightRef.current?.remove();
     const highlight = annotate(chooseBoxRef.current, {
       type: "underline",
@@ -171,7 +173,7 @@ export default function Home() {
   }
 
   function handleShowRecipeHoverEnter() {
-    if (!showRecipeBtnRef.current) return;
+    if (!showRecipeBtnRef.current || !canHover()) return;
     showRecipeAnnotationRef.current?.remove();
     const a = annotate(showRecipeBtnRef.current, {
       type: "underline",
@@ -191,7 +193,7 @@ export default function Home() {
   }
 
   function handleHideRecipeHoverEnter() {
-    if (!hideRecipeBtnRef.current) return;
+    if (!hideRecipeBtnRef.current || !canHover()) return;
     hideRecipeAnnotationRef.current?.remove();
     const a = annotate(hideRecipeBtnRef.current, {
       type: "underline",
@@ -291,7 +293,7 @@ export default function Home() {
   }
 
   function handleBarSubmitHoverEnter() {
-    if (!barSubmitBoxRef.current) return;
+    if (!barSubmitBoxRef.current || !canHover()) return;
     barSubmitAnnotationRef.current?.remove();
     const a = annotate(barSubmitBoxRef.current, {
       type: "underline",
@@ -335,7 +337,7 @@ export default function Home() {
   }
 
   function handleShareHoverEnter() {
-    if (!shareBtnRef.current) return;
+    if (!shareBtnRef.current || !canHover()) return;
     shareAnnotationRef.current?.remove();
     const a = annotate(shareBtnRef.current, {
       type: "underline",
@@ -394,9 +396,9 @@ export default function Home() {
         <div className="relative z-10 flex flex-col gap-8">
           <section className="space-y-3">
             <div className="flex items-end gap-4">
-              <h1 className="font-title text-9xl font-normal text-accent leading-none">
+              <h1 className="font-title text-5xl sm:text-9xl font-normal text-accent leading-none">
                 Pour <span ref={anotherRef}>Another</span>
-                <span className="font-sans text-4xl align-baseline">.</span>
+                <span className="font-sans text-2xl sm:text-4xl align-baseline">.</span>
               </h1>
             </div>
             <p className="font-sans text-sm text-foreground/90 pt-4">
@@ -425,14 +427,11 @@ export default function Home() {
             </section>
           ) : null}
 
-          <section
-            className="grid gap-6"
-            style={{ gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)" }}
-          >
+          <section className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2">
             {/* Left box — mood upload or bar ingredients */}
             <div>
-              <HandDrawnBox className="h-[430px]" delayMs={0} animationDurationMs={100} strokeWidth={1.2} padding={3} iterations={3}>
-                <article className="flex h-full flex-col p-4">
+              <HandDrawnBox className="h-[200px] sm:h-[430px]" delayMs={0} animationDurationMs={100} strokeWidth={1.2} padding={3} iterations={3}>
+                <article className="flex h-full flex-col p-3 sm:p-4">
                   <h2 className="font-sans text-sm text-accent">{mode === "mood" ? "The Mood" : "The Bar"}</h2>
 
                   {mode === "mood" ? (
@@ -450,7 +449,7 @@ export default function Home() {
                               transition: "opacity 1200ms ease-out",
                             }}
                           >
-                            <Image src={previewUrl} alt="Uploaded preview" fill className="object-cover" />
+                            <Image src={previewUrl} alt="Uploaded preview" fill className="object-contain sm:object-cover" />
                           </div>
                           {!showUploadedPreview ? (
                             <div className="absolute inset-0 flex items-center justify-center bg-background/70">
@@ -512,12 +511,12 @@ export default function Home() {
             {/* Right box */}
             <div>
               {hasInputStarted ? (
-                <HandDrawnBox className="h-[430px]" delayMs={350}>
-                  <article className="flex h-full flex-col p-4">
+                <HandDrawnBox className="h-[200px] sm:h-[430px]" delayMs={350}>
+                  <article className="flex h-full flex-col p-3 sm:p-4">
                     <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
                       {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full text-center">
-                          <div className="relative w-32 h-32 mb-4">
+                          <div className="relative w-16 h-16 sm:w-32 sm:h-32 mb-4">
                             <Image src={(previewUrl || mode === "bar") ? cocktailFrames[currentCocktailFrame] : "/images/glass4.png"} alt="Cocktail" fill className="object-contain" />
                           </div>
                           <p className="font-sans text-sm text-foreground/80 flex items-center justify-center gap-0.5">
@@ -622,7 +621,7 @@ export default function Home() {
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center">
-                          <div className="relative w-32 h-32 mb-4">
+                          <div className="relative w-16 h-16 sm:w-32 sm:h-32 mb-4">
                             <Image src={previewUrl ? cocktailFrames[currentCocktailFrame] : "/images/glass4.png"} alt="Cocktail" fill className="object-contain" />
                           </div>
                           <p className="font-sans text-sm text-foreground/80 text-center">
@@ -634,8 +633,8 @@ export default function Home() {
                   </article>
                 </HandDrawnBox>
               ) : (
-                <div className="h-[430px] flex flex-col items-center justify-center p-4">
-                  <div className="relative w-32 h-32 mb-4">
+                <div className="h-[200px] sm:h-[430px] flex flex-col items-center justify-center p-4">
+                  <div className="relative w-16 h-16 sm:w-32 sm:h-32 mb-4">
                     <Image src="/images/glass4.png" alt="Cocktail" fill className="object-contain" />
                   </div>
                   <p className="font-sans text-sm text-foreground/80 text-center">

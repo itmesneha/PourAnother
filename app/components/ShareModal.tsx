@@ -22,8 +22,10 @@ export function ShareModal({ onConfirm, onCancel, shareState }: Props) {
   const cancelRef = useRef<HTMLButtonElement>(null);
   const cancelAnnotationRef = useRef<ReturnType<typeof annotate> | null>(null);
 
+  const canHover = () => window.matchMedia("(hover: hover)").matches;
+
   function handleSubmitEnter() {
-    if (!submitBoxRef.current) return;
+    if (!submitBoxRef.current || !canHover()) return;
     submitAnnotationRef.current?.remove();
     const a = annotate(submitBoxRef.current, {
       type: "underline",
@@ -43,7 +45,7 @@ export function ShareModal({ onConfirm, onCancel, shareState }: Props) {
   }
 
   function handleCancelEnter() {
-    if (!cancelRef.current) return;
+    if (!cancelRef.current || !canHover()) return;
     cancelAnnotationRef.current?.remove();
     const a = annotate(cancelRef.current, {
       type: "underline",
