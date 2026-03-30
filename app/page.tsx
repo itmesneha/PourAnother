@@ -26,7 +26,11 @@ export default function Home() {
   const hideRecipeAnnotationRef = useRef<ReturnType<typeof annotate> | null>(null);
   const shareBtnRef = useRef<HTMLButtonElement>(null);
   const shareAnnotationRef = useRef<ReturnType<typeof annotate> | null>(null);
+  const barSubmitBoxRef = useRef<HTMLDivElement>(null);
+  const barSubmitAnnotationRef = useRef<ReturnType<typeof annotate> | null>(null);
+  const [mode, setMode] = useState<"mood" | "bar">("mood");
   const [file, setFile] = useState<File | null>(null);
+  const [ingredients, setIngredients] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PairingResult | null>(null);
@@ -273,6 +277,60 @@ export default function Home() {
     window.setTimeout(() => setPoeticVisible(true), 20);
   }
 
+  function switchMode(newMode: "mood" | "bar") {
+    if (newMode === mode) return;
+    setMode(newMode);
+    setFile(null);
+    setIngredients("");
+    setResult(null);
+    setError(null);
+    setShowRecipe(false);
+  }
+
+  function handleBarSubmitHoverEnter() {
+    if (!barSubmitBoxRef.current) return;
+    barSubmitAnnotationRef.current?.remove();
+    const a = annotate(barSubmitBoxRef.current, {
+      type: "underline",
+      color: "#B17457",
+      padding: 0,
+      iterations: 5,
+      animate: true,
+      animationDuration: 500,
+    });
+    barSubmitAnnotationRef.current = a;
+    a.show();
+  }
+
+  function handleBarSubmitHoverLeave() {
+    barSubmitAnnotationRef.current?.remove();
+    barSubmitAnnotationRef.current = null;
+  }
+
+  async function analyzeIngredients() {
+    if (!ingredients.trim() || isLoading) return;
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const response = await fetch("/api/bar", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ingredients: ingredients.trim() }),
+      });
+      const payload = (await response.json()) as { error: string } | { result: PairingResult };
+      if (!response.ok || "error" in payload) {
+        throw new Error("error" in payload ? payload.error : "Request failed.");
+      }
+      setResult(payload.result);
+      setShowRecipe(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   function handleShareHoverEnter() {
     if (!shareBtnRef.current) return;
     shareAnnotationRef.current?.remove();
@@ -333,8 +391,23 @@ export default function Home() {
               </h1>
             </div>
             <p className="font-sans text-sm text-foreground/90 pt-4">
-              Every mood has a drink waiting for it.
+              {mode === "mood" ? "Every mood has a drink waiting for it." : "Every bar has a cocktail hiding in it."}
             </p>
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                className={`font-sans text-sm transition-colors ${mode === "mood" ? "text-accent" : "text-foreground/35 hover:text-foreground/60"}`}
+                onClick={() => switchMode("mood")}
+              >
+                the mood
+              </button>
+              <span className="font-sans text-sm text-foreground/25">/</span>
+              <button
+                className={`font-sans text-sm transition-colors ${mode === "bar" ? "text-accent" : "text-foreground/35 hover:text-foreground/60"}`}
+                onClick={() => switchMode("bar")}
+              >
+                the bar
+              </button>
+            </div>
           </section>
 
           {error ? (
@@ -347,54 +420,79 @@ export default function Home() {
             className="grid gap-6"
             style={{ gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)" }}
           >
-            {/* Left box — file upload */}
+            {/* Left box — mood upload or bar ingredients */}
             <div>
               <HandDrawnBox className="h-[430px]" delayMs={0} animationDurationMs={100} strokeWidth={1.2} padding={3} iterations={3}>
                 <article className="flex h-full flex-col p-4">
-                  <h2 className="font-sans text-sm text-accent">The Mood</h2>
+                  <h2 className="font-sans text-sm text-accent">{mode === "mood" ? "The Mood" : "The Bar"}</h2>
 
-                  {previewUrl ? (
-                    <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3">
-                      <div
-                        className="relative min-h-0 flex-1 overflow-hidden rounded-md border border-foreground/20 bg-background"
-                        style={{ cursor: showUploadedPreview ? "zoom-in" : "default" }}
-                        onClick={() => { if (showUploadedPreview) setLightboxOpen(true); }}
-                      >
+                  {mode === "mood" ? (
+                    previewUrl ? (
+                      <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3">
                         <div
-                          className="absolute inset-0"
-                          style={{
-                            opacity: showUploadedPreview ? 1 : 0,
-                            transition: "opacity 1200ms ease-out",
-                          }}
+                          className="relative min-h-0 flex-1 overflow-hidden rounded-md border border-foreground/20 bg-background"
+                          style={{ cursor: showUploadedPreview ? "zoom-in" : "default" }}
+                          onClick={() => { if (showUploadedPreview) setLightboxOpen(true); }}
                         >
-                          <Image src={previewUrl} alt="Uploaded preview" fill className="object-cover" />
-                        </div>
-                        {!showUploadedPreview ? (
-                          <div className="absolute inset-0 flex items-center justify-center bg-background/70">
-                            <p className="font-sans text-sm text-accent/85">framing your mood...</p>
+                          <div
+                            className="absolute inset-0"
+                            style={{
+                              opacity: showUploadedPreview ? 1 : 0,
+                              transition: "opacity 1200ms ease-out",
+                            }}
+                          >
+                            <Image src={previewUrl} alt="Uploaded preview" fill className="object-cover" />
                           </div>
-                        ) : null}
+                          {!showUploadedPreview ? (
+                            <div className="absolute inset-0 flex items-center justify-center bg-background/70">
+                              <p className="font-sans text-sm text-accent/85">framing your mood...</p>
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="flex justify-center py-2">
+                          <div ref={chooseBoxRef} className="w-1/2" onMouseEnter={handleChooseHoverEnter} onMouseLeave={handleChooseHoverLeave}>
+                            <HandDrawnBox className="w-full" animationDurationMs={3000} strokeWidth={1.2} padding={3} iterations={1}>
+                              <label className="font-sans inline-flex w-full cursor-pointer items-center justify-center rounded-sm bg-accent/5 px-4 py-3 text-center text-sm text-accent">
+                                choose another
+                                <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+                              </label>
+                            </HandDrawnBox>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-center py-2">
+                    ) : (
+                      <div className="mt-3 flex flex-1 items-center justify-center">
                         <div ref={chooseBoxRef} className="w-1/2" onMouseEnter={handleChooseHoverEnter} onMouseLeave={handleChooseHoverLeave}>
                           <HandDrawnBox className="w-full" animationDurationMs={3000} strokeWidth={1.2} padding={3} iterations={1}>
                             <label className="font-sans inline-flex w-full cursor-pointer items-center justify-center rounded-sm bg-accent/5 px-4 py-3 text-center text-sm text-accent">
-                              choose another
+                              {isLoading ? "reading the room..." : "choose file"}
                               <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
                             </label>
                           </HandDrawnBox>
                         </div>
                       </div>
-                    </div>
+                    )
                   ) : (
-                    <div className="mt-3 flex flex-1 items-center justify-center">
-                      <div ref={chooseBoxRef} className="w-1/2" onMouseEnter={handleChooseHoverEnter} onMouseLeave={handleChooseHoverLeave}>
-                        <HandDrawnBox className="w-full" animationDurationMs={3000} strokeWidth={1.2} padding={3} iterations={1}>
-                          <label className="font-sans inline-flex w-full cursor-pointer items-center justify-center rounded-sm bg-accent/5 px-4 py-3 text-center text-sm text-accent">
-                            {isLoading ? "reading the room..." : "choose file"}
-                            <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-                          </label>
-                        </HandDrawnBox>
+                    <div className="mt-3 flex flex-1 flex-col gap-3">
+                      <textarea
+                        className="flex-1 resize-none bg-transparent font-sans text-sm text-foreground placeholder:text-foreground/30 focus:outline-none leading-7"
+                        placeholder={"gin, lemon, rosemary,\ntriple sec, honey..."}
+                        value={ingredients}
+                        onChange={(e) => setIngredients(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void analyzeIngredients(); }}
+                      />
+                      <div className="flex justify-center py-2">
+                        <div ref={barSubmitBoxRef} className="w-2/3" onMouseEnter={handleBarSubmitHoverEnter} onMouseLeave={handleBarSubmitHoverLeave}>
+                          <HandDrawnBox className="w-full" animationDurationMs={3000} strokeWidth={1.2} padding={3} iterations={1}>
+                            <button
+                              className="font-sans inline-flex w-full cursor-pointer items-center justify-center rounded-sm bg-accent/5 px-4 py-3 text-center text-sm text-accent disabled:opacity-50"
+                              onClick={() => void analyzeIngredients()}
+                              disabled={isLoading || !ingredients.trim()}
+                            >
+                              {isLoading ? "mixing something up..." : "what can i make?"}
+                            </button>
+                          </HandDrawnBox>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -414,7 +512,7 @@ export default function Home() {
                             <Image src={previewUrl ? cocktailFrames[currentCocktailFrame] : "/images/glass4.png"} alt="Cocktail" fill className="object-contain" />
                           </div>
                           <p className="font-sans text-sm text-foreground/80 flex items-center justify-center gap-0.5">
-                            reading the room
+                            {mode === "mood" ? "reading the room" : "raiding the cabinet"}
                             <span className="ml-1 flex gap-0.5">
                               <span className="animate-bounce [animation-delay:0ms]">.</span>
                               <span className="animate-bounce [animation-delay:150ms]">.</span>
@@ -500,8 +598,8 @@ export default function Home() {
                             </div>
                           )}
 
-                          {/* Share button — appears after typing finishes */}
-                          {!isTyping && (
+                          {/* Share button — mood mode only, appears after typing finishes */}
+                          {!isTyping && mode === "mood" && (
                             <button
                               ref={shareBtnRef}
                               className="font-sans cursor-pointer bg-transparent px-4 py-1 text-xs text-foreground/40 hover:text-accent transition-colors"
@@ -523,7 +621,7 @@ export default function Home() {
                             <Image src={previewUrl ? cocktailFrames[currentCocktailFrame] : "/images/glass4.png"} alt="Cocktail" fill className="object-contain" />
                           </div>
                           <p className="font-sans text-sm text-foreground/80 text-center">
-                            ready to read the room
+                            {mode === "mood" ? "ready to read the room" : "tell me what you've got"}
                           </p>
                         </div>
                       )}
@@ -536,7 +634,7 @@ export default function Home() {
                     <Image src="/images/glass4.png" alt="Cocktail" fill className="object-contain" />
                   </div>
                   <p className="font-sans text-sm text-foreground/80 text-center">
-                    ready to read the room
+                    {mode === "mood" ? "ready to read the room" : "tell me what you've got"}
                   </p>
                 </div>
               )}
