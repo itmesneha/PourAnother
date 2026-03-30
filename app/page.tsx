@@ -24,6 +24,8 @@ export default function Home() {
   const showRecipeAnnotationRef = useRef<ReturnType<typeof annotate> | null>(null);
   const hideRecipeBtnRef = useRef<HTMLButtonElement>(null);
   const hideRecipeAnnotationRef = useRef<ReturnType<typeof annotate> | null>(null);
+  const shareBtnRef = useRef<HTMLButtonElement>(null);
+  const shareAnnotationRef = useRef<ReturnType<typeof annotate> | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +35,7 @@ export default function Home() {
   const [currentCocktailFrame, setCurrentCocktailFrame] = useState(0);
   const [showRecipe, setShowRecipe] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [shareState, setShareState] = useState<"idle" | "loading" | "copied" | "error">("idle");
 
   // Animation states
   const [drinkVisible, setDrinkVisible] = useState(false);
@@ -43,6 +46,14 @@ export default function Home() {
 
   const typewriterRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasInputStarted = file !== null || isLoading || result !== null;
+
+  useEffect(() => {
+    if (!previewUrl) return;
+    const interval = setInterval(() => {
+      setCurrentCocktailFrame((f) => (f + 1) % cocktailFrames.length);
+    }, 400);
+    return () => clearInterval(interval);
+  }, [previewUrl]);
 
   useEffect(() => {
     if (!anotherRef.current) return;
@@ -93,6 +104,7 @@ export default function Home() {
       setPoeticText("");
       setPoeticVisible(false);
       setRecipeVisible(false);
+      setShareState("idle");
       return;
     }
 
@@ -261,6 +273,46 @@ export default function Home() {
     window.setTimeout(() => setPoeticVisible(true), 20);
   }
 
+  function handleShareHoverEnter() {
+    if (!shareBtnRef.current) return;
+    shareAnnotationRef.current?.remove();
+    const a = annotate(shareBtnRef.current, {
+      type: "underline",
+      color: "#B17457",
+      padding: 0,
+      iterations: 2,
+      animate: true,
+      animationDuration: 400,
+    });
+    shareAnnotationRef.current = a;
+    a.show();
+  }
+
+  function handleShareHoverLeave() {
+    shareAnnotationRef.current?.remove();
+    shareAnnotationRef.current = null;
+  }
+
+  async function handleShare() {
+    if (!file || !result || shareState === "loading") return;
+    setShareState("loading");
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("data", JSON.stringify(result));
+      const res = await fetch("/api/share", { method: "POST", body: formData });
+      const json = (await res.json()) as { id?: string; error?: string };
+      if (!res.ok || !json.id) throw new Error(json.error ?? "Share failed.");
+      const url = `${window.location.origin}/share/${json.id}`;
+      await navigator.clipboard.writeText(url);
+      setShareState("copied");
+      window.setTimeout(() => setShareState("idle"), 3000);
+    } catch {
+      setShareState("error");
+      window.setTimeout(() => setShareState("idle"), 3000);
+    }
+  }
+
   const isTyping = result !== null && poeticText.length < result.poeticPairing.length;
 
   return (
@@ -268,7 +320,7 @@ export default function Home() {
       <div className="pointer-events-none absolute -left-24 top-12 h-[500px] w-[500px] opacity-100">
         <Image src="/images/glass1.png" alt="" fill className="object-contain" aria-hidden priority />
       </div>
-      <div className="pointer-events-none absolute -right-8 bottom-0 h-[300px] w-[300px] opacity-100">
+      <div className="pointer-events-none absolute right-8 bottom-0 h-[300px] w-[300px] opacity-100">
         <Image src="/images/glass2.png" alt="" fill className="object-contain" aria-hidden priority />
       </div>
       <main className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 overflow-hidden bg-background px-6 py-12 text-foreground">
@@ -359,7 +411,7 @@ export default function Home() {
                       {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full text-center">
                           <div className="relative w-32 h-32 mb-4">
-                            <Image src="/images/glass4.png" alt="Cocktail" fill className="object-contain" />
+                            <Image src={previewUrl ? cocktailFrames[currentCocktailFrame] : "/images/glass4.png"} alt="Cocktail" fill className="object-contain" />
                           </div>
                           <p className="font-sans text-sm text-foreground/80 flex items-center justify-center gap-0.5">
                             reading the room
@@ -447,11 +499,28 @@ export default function Home() {
                               </div>
                             </div>
                           )}
+
+                          {/* Share button — appears after typing finishes */}
+                          {!isTyping && (
+                            <button
+                              ref={shareBtnRef}
+                              className="font-sans cursor-pointer bg-transparent px-4 py-1 text-xs text-foreground/40 hover:text-accent transition-colors"
+                              onClick={() => void handleShare()}
+                              onMouseEnter={handleShareHoverEnter}
+                              onMouseLeave={handleShareHoverLeave}
+                              disabled={shareState === "loading"}
+                            >
+                              {shareState === "loading" && "saving..."}
+                              {shareState === "copied" && "link copied!"}
+                              {shareState === "error" && "couldn't share"}
+                              {shareState === "idle" && "share this pairing"}
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center">
                           <div className="relative w-32 h-32 mb-4">
-                            <Image src="/images/glass4.png" alt="Cocktail" fill className="object-contain" />
+                            <Image src={previewUrl ? cocktailFrames[currentCocktailFrame] : "/images/glass4.png"} alt="Cocktail" fill className="object-contain" />
                           </div>
                           <p className="font-sans text-sm text-foreground/80 text-center">
                             ready to read the room
