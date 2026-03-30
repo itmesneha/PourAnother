@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { annotate } from "rough-notation";
 import { HandDrawnBox } from "./components/HandDrawnBox";
+import { ShareModal } from "./components/ShareModal";
 
 type PairingResult = {
   drinkRecommendation: string;
@@ -40,6 +41,7 @@ export default function Home() {
   const [showRecipe, setShowRecipe] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [shareState, setShareState] = useState<"idle" | "loading" | "copied" | "error">("idle");
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Animation states
   const [drinkVisible, setDrinkVisible] = useState(false);
@@ -109,6 +111,7 @@ export default function Home() {
       setPoeticVisible(false);
       setRecipeVisible(false);
       setShareState("idle");
+      setShowShareModal(false);
       return;
     }
 
@@ -351,20 +354,26 @@ export default function Home() {
     shareAnnotationRef.current = null;
   }
 
-  async function handleShare() {
-    if (!file || !result || shareState === "loading") return;
+  async function handleShare(from: string, to: string, message: string) {
+    if (!result || shareState === "loading") return;
     setShareState("loading");
     try {
       const formData = new FormData();
-      formData.append("image", file);
+      if (file) formData.append("image", file);
       formData.append("data", JSON.stringify(result));
+      if (from.trim()) formData.append("from", from.trim());
+      if (to.trim()) formData.append("to", to.trim());
+      if (message.trim()) formData.append("message", message.trim());
       const res = await fetch("/api/share", { method: "POST", body: formData });
       const json = (await res.json()) as { id?: string; error?: string };
       if (!res.ok || !json.id) throw new Error(json.error ?? "Share failed.");
       const url = `${window.location.origin}/share/${json.id}`;
       await navigator.clipboard.writeText(url);
       setShareState("copied");
-      window.setTimeout(() => setShareState("idle"), 3000);
+      window.setTimeout(() => {
+        setShareState("idle");
+        setShowShareModal(false);
+      }, 1500);
     } catch {
       setShareState("error");
       window.setTimeout(() => setShareState("idle"), 3000);
@@ -509,7 +518,7 @@ export default function Home() {
                       {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full text-center">
                           <div className="relative w-32 h-32 mb-4">
-                            <Image src={previewUrl ? cocktailFrames[currentCocktailFrame] : "/images/glass4.png"} alt="Cocktail" fill className="object-contain" />
+                            <Image src={(previewUrl || mode === "bar") ? cocktailFrames[currentCocktailFrame] : "/images/glass4.png"} alt="Cocktail" fill className="object-contain" />
                           </div>
                           <p className="font-sans text-sm text-foreground/80 flex items-center justify-center gap-0.5">
                             {mode === "mood" ? "reading the room" : "raiding the cabinet"}
@@ -598,20 +607,16 @@ export default function Home() {
                             </div>
                           )}
 
-                          {/* Share button — mood mode only, appears after typing finishes */}
-                          {!isTyping && mode === "mood" && (
+                          {/* Share button — appears after typing finishes */}
+                          {!isTyping && (
                             <button
                               ref={shareBtnRef}
                               className="font-sans cursor-pointer bg-transparent px-4 py-1 text-xs text-foreground/40 hover:text-accent transition-colors"
-                              onClick={() => void handleShare()}
+                              onClick={() => setShowShareModal(true)}
                               onMouseEnter={handleShareHoverEnter}
                               onMouseLeave={handleShareHoverLeave}
-                              disabled={shareState === "loading"}
                             >
-                              {shareState === "loading" && "saving..."}
-                              {shareState === "copied" && "link copied!"}
-                              {shareState === "error" && "couldn't share"}
-                              {shareState === "idle" && "share this pairing"}
+                              share this pairing
                             </button>
                           )}
                         </div>
@@ -642,6 +647,13 @@ export default function Home() {
           </section>
         </div>
       </main>
+      {showShareModal && (
+        <ShareModal
+          onConfirm={(from, to, message) => void handleShare(from, to, message)}
+          onCancel={() => { setShowShareModal(false); setShareState("idle"); }}
+          shareState={shareState}
+        />
+      )}
       {lightboxOpen && previewUrl && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/75"

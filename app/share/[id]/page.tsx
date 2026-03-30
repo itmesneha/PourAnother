@@ -5,19 +5,22 @@ import { RoughLink } from "./RoughLink";
 import { supabase } from "@/lib/supabase";
 
 type ShareRow = {
-  image_url: string;
+  image_url: string | null;
   drink_recommendation: string;
   poetic_pairing: string;
   recipe: {
     instructions: string;
     ingredients: { ingredient: string; measure: string }[];
   } | null;
+  from_name: string | null;
+  to_name: string | null;
+  message: string | null;
 };
 
 async function getShare(id: string): Promise<ShareRow | null> {
   const { data, error } = await supabase
     .from("shares")
-    .select("image_url, drink_recommendation, poetic_pairing, recipe")
+    .select("image_url, drink_recommendation, poetic_pairing, recipe, from_name, to_name, message")
     .eq("id", id)
     .single();
 
@@ -38,7 +41,7 @@ export async function generateMetadata(
     openGraph: {
       title: `${share.drink_recommendation} — Pour Another`,
       description: share.poetic_pairing,
-      images: [{ url: share.image_url }],
+      ...(share.image_url ? { images: [{ url: share.image_url }] } : {}),
     },
   };
 }
@@ -49,19 +52,23 @@ export default async function SharePage(props: PageProps<"/share/[id]">) {
 
   if (!share) notFound();
 
+  const hasNote = share.to_name || share.from_name || share.message;
+
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm flex flex-col gap-0 rounded-sm overflow-hidden shadow-lg border border-foreground/10">
-        {/* Mood image */}
-        <div className="relative w-full aspect-[4/3] bg-surface">
-          <Image
-            src={share.image_url}
-            alt="Mood"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/60" />
-        </div>
+        {/* Mood image — only for mood mode shares */}
+        {share.image_url && (
+          <div className="relative w-full aspect-[4/3] bg-surface">
+            <Image
+              src={share.image_url}
+              alt="Mood"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/60" />
+          </div>
+        )}
 
         {/* Card body */}
         <div className="bg-background px-6 py-6 flex flex-col gap-4">
@@ -90,6 +97,27 @@ export default async function SharePage(props: PageProps<"/share/[id]">) {
               <p className="font-sans text-sm whitespace-pre-line leading-6 text-foreground/80">
                 {share.recipe.instructions}
               </p>
+            </div>
+          )}
+
+          {/* Personalised note */}
+          {hasNote && (
+            <div className="border-t border-foreground/10 pt-4 flex flex-col gap-1">
+              {share.to_name && (
+                <p className="font-sans text-sm text-foreground/70">
+                  to {share.to_name},
+                </p>
+              )}
+              {share.message && (
+                <p className="font-sans text-sm text-foreground/60 leading-6 italic pt-1">
+                  &ldquo;{share.message}&rdquo;
+                </p>
+              )}
+              {share.from_name && (
+                <p className="font-sans text-sm text-foreground/70 pt-1">
+                  — {share.from_name}
+                </p>
+              )}
             </div>
           )}
 

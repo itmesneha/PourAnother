@@ -104,7 +104,7 @@ export async function POST(request: Request) {
       "Recommend the single best alcoholic cocktail I can make with some or all of these.",
       "Return ONLY valid JSON with this exact shape:",
       '{"drinkRecommendation":"...","poeticPairing":"..."}',
-      "The poeticPairing should be lyrical but concise (1-2 sentences).",
+      "The poeticPairing should be lyrical but concise (1-2 sentences). Do not include the recipe in the drinkRecommendation only a brief title of max 3 words",
     ].join("\n");
 
     const response = await fetch(ANTHROPIC_API_URL, {

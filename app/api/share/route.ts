@@ -15,43 +15,50 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const image = formData.get("image");
     const dataRaw = formData.get("data");
+    const fromName = formData.get("from");
+    const toName = formData.get("to");
+    const message = formData.get("message");
 
-    if (!(image instanceof File)) {
-      return NextResponse.json({ error: "Image required." }, { status: 400 });
-    }
     if (typeof dataRaw !== "string") {
       return NextResponse.json({ error: "Data required." }, { status: 400 });
     }
 
     const data = JSON.parse(dataRaw) as SharePayload;
 
-    // Upload image to Supabase Storage
-    const bytes = await image.arrayBuffer();
-    const fileName = `${crypto.randomUUID()}.${image.name.split(".").pop() ?? "jpg"}`;
+    let imageUrl: string | null = null;
 
-    const { error: uploadError } = await supabase.storage
-      .from("mood-images")
-      .upload(fileName, bytes, { contentType: image.type, upsert: false });
+    if (image instanceof File) {
+      const bytes = await image.arrayBuffer();
+      const fileName = `${crypto.randomUUID()}.${image.name.split(".").pop() ?? "jpg"}`;
 
-    if (uploadError) {
-      return NextResponse.json(
-        { error: `Image upload failed: ${uploadError.message}` },
-        { status: 500 }
-      );
+      const { error: uploadError } = await supabase.storage
+        .from("mood-images")
+        .upload(fileName, bytes, { contentType: image.type, upsert: false });
+
+      if (uploadError) {
+        return NextResponse.json(
+          { error: `Image upload failed: ${uploadError.message}` },
+          { status: 500 }
+        );
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("mood-images")
+        .getPublicUrl(fileName);
+
+      imageUrl = urlData.publicUrl;
     }
 
-    const { data: urlData } = supabase.storage
-      .from("mood-images")
-      .getPublicUrl(fileName);
-
-    // Insert share record
     const { data: row, error: insertError } = await supabase
       .from("shares")
       .insert({
-        image_url: urlData.publicUrl,
+        image_url: imageUrl,
         drink_recommendation: data.drinkRecommendation,
         poetic_pairing: data.poeticPairing,
         recipe: data.recipe ?? null,
+        from_name: typeof fromName === "string" && fromName.trim() ? fromName.trim() : null,
+        to_name: typeof toName === "string" && toName.trim() ? toName.trim() : null,
+        message: typeof message === "string" && message.trim() ? message.trim() : null,
       })
       .select("id")
       .single();

@@ -143,14 +143,13 @@ async function getRecipeFromClaude(
 }
 
 // --- DEV CACHE FOR CLAUDE RESPONSE ---
+// Set DEV_CACHE=true in .env.local to use this instead of calling Claude.
 const DEV_CLAUDE_CACHE = {
-  enabled: process.env.NODE_ENV === "development",
+  enabled: process.env.DEV_CACHE === "true",
   result: {
     drinkRecommendation: "Aged Scotch Whisky (single malt, neat)",
     poeticPairing:
       "Like the dog-eared pages of a forgotten manuscript, a glass of peated single malt lingers with smoky wisdom and amber warmth. Sip slowly — some truths, like Bukowski knew, are only found in the dying light.",
-    // aesthetic:
-    //   "Dark academia moodboard with rich sepia and mahogany tones, featuring ancient libraries, handwritten manuscripts, classical busts, aged globes, and literary quotes — evoking intellectual melancholy and timeless scholarly romance",
   },
 };
 
@@ -199,7 +198,7 @@ export async function POST(request: Request) {
       "Then recommend only one alcholic drink pairing.",
       "Return ONLY valid JSON with this exact shape:",
       '{"drinkRecommendation":"...","poeticPairing":"..."}',
-      "The poeticPairing should be lyrical but concise (1-2 sentences)."
+      "The poeticPairing should be lyrical but concise (1-2 sentences). The drinkRecommendation should be a brief title of max 3 words, do not include the recipe in the drinkRecommendation.",
     ].join("\n");
 
     const response = await fetch(ANTHROPIC_API_URL, {
@@ -258,15 +257,12 @@ export async function POST(request: Request) {
 
     // DEV: Use cached Claude response if enabled
     if (DEV_CLAUDE_CACHE.enabled) {
-      const result = { ...DEV_CLAUDE_CACHE.result };
-      // Fetch recipe as normal
+      const cachedResult: PairingResult = { ...DEV_CLAUDE_CACHE.result };
       const recipe =
-        (await fetchRecipeFromCocktailDB(result.drinkRecommendation)) ||
-        (await getRecipeFromClaude(result.drinkRecommendation, apiKey, model));
-      if (recipe) {
-        result.recipe = recipe;
-      }
-      return NextResponse.json({ result });
+        (await fetchRecipeFromCocktailDB(cachedResult.drinkRecommendation)) ||
+        (await getRecipeFromClaude(cachedResult.drinkRecommendation, apiKey, model));
+      if (recipe) cachedResult.recipe = recipe;
+      return NextResponse.json({ result: cachedResult });
     }
 
     // Fetch recipe from CocktailDB, fallback to Claude
