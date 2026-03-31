@@ -24,6 +24,11 @@ export function ShareModal({ onConfirm, onCancel, shareState }: Props) {
 
   const canHover = () => window.matchMedia("(hover: hover)").matches;
 
+  function playSound(src: string) {
+    const audio = new Audio(src);
+    audio.play().catch(() => {});
+  }
+
   function handleSubmitEnter() {
     if (!submitBoxRef.current || !canHover()) return;
     submitAnnotationRef.current?.remove();
@@ -70,7 +75,7 @@ export function ShareModal({ onConfirm, onCancel, shareState }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm"
-      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) { playSound("/sounds/page-change.mp3"); onCancel(); } }}
     >
       <div className="w-full max-w-xs mx-4">
         <HandDrawnBox strokeWidth={1.2} padding={6} iterations={3}>
@@ -134,7 +139,7 @@ export function ShareModal({ onConfirm, onCancel, shareState }: Props) {
                   <button
                     className="font-sans text-sm text-accent px-4 py-2 bg-accent/5 disabled:opacity-50 cursor-pointer relative"
                     style={{ minWidth: "7.5rem" }}
-                    onClick={() => { setTried(true); if (canSubmit) onConfirm(from, to, message); }}
+                    onClick={() => { setTried(true); if (canSubmit) { playSound("/sounds/page-change.mp3"); onConfirm(from, to, message); } }}
                     disabled={isLoading}
                   >
                     {/* Widest string sits invisible to reserve space */}
@@ -151,7 +156,7 @@ export function ShareModal({ onConfirm, onCancel, shareState }: Props) {
               <button
                 ref={cancelRef}
                 className="font-sans text-xs text-foreground/40 bg-transparent cursor-pointer"
-                onClick={onCancel}
+                onClick={() => { playSound("/sounds/page-change.mp3"); onCancel(); }}
                 onMouseEnter={handleCancelEnter}
                 onMouseLeave={handleCancelLeave}
               >

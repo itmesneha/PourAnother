@@ -18,6 +18,11 @@ export default function Home() {
     "/images/header_cocktail/second.png",
     "/images/header_cocktail/third.png",
   ];
+
+  function playSound(src: string) {
+    const audio = new Audio(src);
+    audio.play().catch(() => {});
+  }
   const anotherRef = useRef<HTMLSpanElement>(null);
   const chooseBoxRef = useRef<HTMLDivElement>(null);
   const chooseHighlightRef = useRef<ReturnType<typeof annotate> | null>(null);
@@ -251,10 +256,12 @@ export default function Home() {
   function handleFileSelect(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
     if (!selected) return;
+    playSound("/sounds/open.mp3");
     void analyzeImage(selected);
   }
 
   function handleShowRecipe() {
+    playSound("/sounds/switch-on.mp3");
     // Stop typewriter and complete the text
     if (typewriterRef.current) {
       clearInterval(typewriterRef.current);
@@ -268,6 +275,7 @@ export default function Home() {
   }
 
   function handleHideRecipe() {
+    playSound("/sounds/switch-on.mp3");
     // Trigger recipe fade-out; onTransitionEnd will finish the switch
     setRecipeExiting(true);
     setRecipeVisible(false);
@@ -284,6 +292,7 @@ export default function Home() {
 
   function switchMode(newMode: "mood" | "bar") {
     if (newMode === mode) return;
+    playSound("/sounds/page-change.mp3");
     setMode(newMode);
     setFile(null);
     setIngredients("");
@@ -314,6 +323,7 @@ export default function Home() {
 
   async function analyzeIngredients() {
     if (!ingredients.trim() || isLoading) return;
+    playSound("/sounds/open.mp3");
     setIsLoading(true);
     setError(null);
     setResult(null);
@@ -611,7 +621,7 @@ export default function Home() {
                             <button
                               ref={shareBtnRef}
                               className="font-sans cursor-pointer bg-transparent px-4 py-1 text-xs text-foreground/40 hover:text-accent transition-colors"
-                              onClick={() => setShowShareModal(true)}
+                              onClick={() => { playSound("/sounds/switch-on.mp3"); setShowShareModal(true); }}
                               onMouseEnter={handleShareHoverEnter}
                               onMouseLeave={handleShareHoverLeave}
                             >
