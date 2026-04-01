@@ -62,7 +62,12 @@ export default function RootLayout({
       lang="en"
       className={`${dirtyCursive.variable} ${anticaSignature.variable} ${malvinassignature.variable} ${tychrc2u.variable} ${antically.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <footer className="mt-auto py-4 text-center text-sm opacity-50">
+          made with ❤️ by cabbagefairy
+        </footer>
+      </body>
     </html>
   );
 }
