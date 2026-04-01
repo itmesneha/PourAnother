@@ -256,7 +256,6 @@ export default function Home() {
   function handleFileSelect(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
     if (!selected) return;
-    playSound("/sounds/open.mp3");
     void analyzeImage(selected);
   }
 

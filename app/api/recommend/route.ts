@@ -234,9 +234,8 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
       return NextResponse.json(
-        { error: `Claude API error: ${errorText}` },
+        { error: "Something went wrong while reading the room. Try again in a moment." },
         { status: 502 },
       );
     }
@@ -275,12 +274,10 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ result });
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unexpected error while processing the image.";
-
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "Something went wrong while reading the room. Try again in a moment." },
+      { status: 500 },
+    );
   }
 }

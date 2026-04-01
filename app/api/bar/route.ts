@@ -122,8 +122,10 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      return NextResponse.json({ error: `Claude API error: ${errorText}` }, { status: 502 });
+      return NextResponse.json(
+        { error: "Something went wrong while raiding the cabinet. Try again in a moment." },
+        { status: 502 },
+      );
     }
 
     const claudePayload = (await response.json()) as {
@@ -154,8 +156,10 @@ export async function POST(request: Request) {
     if (recipe) result.recipe = recipe;
 
     return NextResponse.json({ result });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unexpected error.";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "Something went wrong while raiding the cabinet. Try again in a moment." },
+      { status: 500 },
+    );
   }
 }
