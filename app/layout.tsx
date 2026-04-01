@@ -65,7 +65,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <footer className="mt-auto py-4 text-center text-sm opacity-50">
-          made with ❤️ by cabbagefairy
+          made with ❤️ by <a href="https://snehasarkar.vercel.app/" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">cabbagefairy</a>
         </footer>
       </body>
     </html>
