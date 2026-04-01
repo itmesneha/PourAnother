@@ -379,7 +379,30 @@ export default function Home() {
       const json = (await res.json()) as { id?: string; error?: string };
       if (!res.ok || !json.id) throw new Error(json.error ?? "Share failed.");
       const url = `${window.location.origin}/share/${json.id}`;
-      await navigator.clipboard.writeText(url);
+
+      // Try clipboard first; on mobile it often fails after an async gap
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(url);
+        copied = true;
+      } catch {
+        // fall through to native share
+      }
+
+      if (!copied && typeof navigator.share === "function") {
+        try {
+          await navigator.share({ title: "Pour Another", url });
+          copied = true;
+        } catch {
+          // user cancelled or share unavailable
+        }
+      }
+
+      if (!copied) {
+        // Last resort: open the share URL directly so the user can copy it
+        window.open(url, "_blank");
+      }
+
       setShareState("copied");
       window.setTimeout(() => {
         setShareState("idle");
